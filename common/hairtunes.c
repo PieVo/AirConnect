@@ -837,6 +837,7 @@ static void *http_thread_func(void *arg) {
 	hairtunes_t *ctx = (hairtunes_t*) arg;
 	int sock = -1;
 	struct timeval timeout = { 0, 0 };
+	int counter = 0;
 
 	if (ctx->codec == CODEC_FLAC && ((flac_samples = malloc(2 * ctx->frame_size * sizeof(FLAC__int32))) == NULL)) {
 		LOG_ERROR("[%p]: Cannot allocate FLAC sample buffer %u", ctx, ctx->frame_size);
@@ -847,6 +848,7 @@ static void *http_thread_func(void *arg) {
 		fd_set rfds;
 		int n;
 		bool res = true;
+		counter++;
 
 		if (sock == -1) {
 			struct timeval timeout = {0, 50*1000};
@@ -879,12 +881,13 @@ static void *http_thread_func(void *arg) {
 		}
 
 		// terminate connection if required by HTTP peer
-		if (n < 0 || !res) {
+		if ((n < 0 || !res) && (counter > 20)) {
 			closesocket(sock);
 			LOG_INFO("HTTP close %u", sock);
 			sock = -1;
 			pthread_mutex_lock(&ctx->ab_mutex);
 			ctx->http_ready = false;
+			counter = 0;
 			pthread_mutex_unlock(&ctx->ab_mutex);
 		}
 
