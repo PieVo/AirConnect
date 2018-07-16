@@ -308,9 +308,10 @@ void callback(void *owner, raop_event_t event, void *param)
 				NFREE(uri);
 			}
 
+			usleep(100000);
 			AVTPlay(Device);
 
-			CtrlSetVolume(Device, Device->Volume, Device->seqN++);
+			//CtrlSetVolume(Device, Device->Volume, Device->seqN++);
 			Device->RaopState = event;
 			break;
 		}
